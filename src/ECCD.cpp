@@ -2,8 +2,6 @@
 
 #include <cassert>
 
-static const int max_trials = 8;
-
 namespace eccd
 {
 TriPtF::TriPtF(const Vector3d &pts,
@@ -186,8 +184,9 @@ Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners)
 
 bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<std::array<int, 3>, 4> &tet_faces)
 {
-    Vector3d dir(0, 0, 1);
     int trials;
+    const int max_trials = 8;
+    Vector3d dir(0, 0, 1);
 
     for (trials = 0; trials < max_trials; ++trials)
     {
@@ -228,26 +227,23 @@ bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<s
     return false;
 }
 
-
-bool ray_flat_patch(const std::array<Vector3r, 4> &corners)
+int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
 {
-    int trials;
     assert(orient3d(corners[0], corners[1], corners[2], corners[3]) == 0);
 
-    Vector3d dir(0, 0, 1);
-
     Vector3r inter;
-    Vector3r n = cross(corners[0]-corners[1], corners[2] - corners[1]);
-    bool inter_r;
-    int dim;
-    for(dim = 0; dim < 3; ++dim)
+    const Vector3r n = cross(corners[0]-corners[1], corners[2] - corners[1]);
+    bool inter_r = false;
+    bool ok = false;
+    for(int dim = 0; dim < 3; ++dim)
     {
         if (n[dim].get_sign() != 0){
             inter_r = segment_segment_inter(corners[0], corners[1], corners[2], corners[3], inter, dim);
+            ok = true;
             break;
         }
     }
-    if(dim == 3)
+    if (!ok)
     {
         std::cout << "n == 0" << std::endl;
         exit(0);
@@ -259,15 +255,17 @@ bool ray_flat_patch(const std::array<Vector3r, 4> &corners)
         exit(0);
     }
 
-    for (dim = 0; dim < 3; ++dim)
+    ok = false;
+    for (int dim = 0; dim < 3; ++dim)
     {
         if (n[dim].get_sign() != 0)
         {
             inter_r = segment_segment_inter(corners[1], corners[2], corners[3], corners[0], inter, dim);
+            ok = true;
             break;
         }
     }
-    if (dim == 3)
+    if (!ok)
     {
         std::cout << "n == 0" << std::endl;
         exit(0);
@@ -279,35 +277,24 @@ bool ray_flat_patch(const std::array<Vector3r, 4> &corners)
         exit(0);
     }
 
-    for (trials = 0; trials < max_trials; ++trials)
-    {
-        int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
-        //hit
-        if (res0 > 0)
-            return true;
+    int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
+    if (res0 < 0)
+        return -1;
 
-        int res1 = origin_ray_triangle_inter(dir, corners[0], corners[2], corners[3]);
-        //hit
-        if (res1 > 0)
-            return true;
+    int res1 = origin_ray_triangle_inter(dir, corners[0], corners[2], corners[3]);
+    if (res1 < 0)
+        return -1;
 
-        //bad luck
-        if (res1 < 0 || res1 < 0)
-        {
-            dir = Vector3d::Random();
-            continue;
-        }
+    //bad luck
+    if (res0 > 0 || res1 > 0)
+        return 1;
 
-        //both do not hit
-        return false;
-    }
-
-    std::cout << "All rays are on edges, increase trials" << std::endl;
-    return false;
+    //both no hit
+    return 0;
 }
 
 template <typename FuncF>
-bool ray_patch(const FuncF &func, int patch)
+int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
 {
     static const std::array<std::array<int, 3>, 4> tet_faces = {{{{0, 1, 2}},
                                                                  {{0, 1, 3}},
@@ -315,13 +302,12 @@ bool ray_patch(const FuncF &func, int patch)
                                                                  {{2, 0, 3}}}};
 
     static const Vector3r zero(0, 0, 0);
-    int trials;
 
     const std::array<Vector3r, 4> corners = func.corners(patch);
 
     if (orient3d(corners[0], corners[1], corners[2], corners[3]) == 0)
     {
-        return ray_flat_patch(corners);
+        return ray_flat_patch(corners, dir);
     }
 
     std::array<int, 2> Fp;
@@ -371,79 +357,48 @@ bool ray_patch(const FuncF &func, int patch)
         const auto &F0 = phi_v.get_sign() > 0 ? tet_faces[Fm[0]] : tet_faces[Fp[0]];
         const auto &F1 = phi_v.get_sign() > 0 ? tet_faces[Fm[1]] : tet_faces[Fp[1]];
 
-        for (trials = 0; trials < max_trials; ++trials)
-        {
-            int res0 = origin_ray_triangle_inter(dir, corners[F0[0]], corners[F0[1]], corners[F0[2]]);
-            //hit
-            if (res0 > 0)
-                return true;
+        int res0 = origin_ray_triangle_inter(dir, corners[F0[0]], corners[F0[1]], corners[F0[2]]);
+        if (res0 < 0)
+            return -1;
 
-            int res1 = origin_ray_triangle_inter(dir, corners[F1[0]], corners[F1[1]], corners[F1[2]]);
-            //hit
-            if (res1 > 0)
-                return true;
+        int res1 = origin_ray_triangle_inter(dir, corners[F1[0]], corners[F1[1]], corners[F1[2]]);
+        if (res1 < 0)
+            return -1;
 
-            //bad luck
-            if (res1 < 0 || res1 < 0)
-            {
-                dir = Vector3d::Random();
-                continue;
-            }
+        //hit
+        if (res0 > 0 || res1 > 0)
+            return 1;
 
-            //both do not hit
-            return false;
-        }
-
-        if (trials == max_trials)
-        {
-            std::cout << "All rays are on edges, increase trials" << std::endl;
-            return false;
-        }
+        return 0;
     }
     else
     {
-        Vector3d dir(0, 0, 1);
         const auto &Fp0 = tet_faces[Fp[0]];
         const auto &Fp1 = tet_faces[Fp[1]];
 
-        for (trials = 0; trials < max_trials; ++trials)
-        {
-            int res0 = origin_ray_triangle_inter(dir, corners[Fp0[0]], corners[Fp0[1]], corners[Fp0[2]]);
-            //bad luck
-            if (res0 < 0)
-            {
-                dir = Vector3d::Random();
-                continue;
-            }
+        int res0 = origin_ray_triangle_inter(dir, corners[Fp0[0]], corners[Fp0[1]], corners[Fp0[2]]);
+        //bad luck
+        if (res0 < 0)
+            return -1;
 
-            int res1 = origin_ray_triangle_inter(dir, corners[Fp1[0]], corners[Fp1[1]], corners[Fp1[2]]);
+        int res1 = origin_ray_triangle_inter(dir, corners[Fp1[0]], corners[Fp1[1]], corners[Fp1[2]]);
+        if (res1 < 0)
+            return -1;
 
-            if (res1 < 0)
-            {
-                dir = Vector3d::Random();
-                continue;
-            }
+        bool res0b = (res0 == 1);
+        bool res1b = (res1 == 1);
 
-            bool res0b = res0 == 1;
-            bool res1b = res1 == 1;
-
-            return res0b ^ res1b;
-        }
-
-        if (trials == max_trials)
-        {
-            std::cout << "All rays are on edges, increase trials" << std::endl;
-            return false;
-        }
+        //res0b xor res1b
+        return (!res0b != !res1b) ? 1 : 0;
     }
 
     //the other branches return
     assert(false);
-    return false;
+    return 0;
 }
 
 template <typename FuncF>
-bool ccd(const FuncF &func)
+int ccd(const FuncF &func, const Vector3d &dir)
 {
     int S = 0;
 
@@ -451,39 +406,55 @@ bool ccd(const FuncF &func)
 
     for (int patch = 0; patch < n_patches; ++patch)
     {
-        bool is_ray_patch = ray_patch(func, patch);
-        if (is_ray_patch)
+        int is_ray_patch = ray_patch(func, patch, dir);
+        if(is_ray_patch == -1)
+            return -1;
+
+        if (is_ray_patch == 1)
             S++;
     }
 
+    std::cout<<S<<std::endl;
+
     const auto caps = func.top_bottom_faces();
-    int trials;
 
     for (const auto &tri : caps)
     {
-        Vector3d dir(0, 0, 1);
-        int res = -1;
-
-        for (trials = 0; trials < max_trials; ++trials)
-        {
-            res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
-            if (res >= 0)
-                break;
-
-            dir = Vector3d::Random();
-        }
-
-        if (trials == max_trials)
-        {
-            std::cout << "All rays are on edges, increase trials" << std::endl;
-            return false;
-        }
+        int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
+        if (res == -1)
+            return -1;
 
         if (res > 0)
             S++;
     }
 
-    return S % 2 == 1;
+    return ((S % 2) == 1) ? 1 : 0;
+}
+
+template <typename FuncF>
+bool retrial_ccd(const FuncF &func){
+    static const int max_trials = 8;
+    Vector3d dir(0, 0, 1);
+
+    int res = -1;
+    int trials;
+    for (trials = 0; trials < max_trials; ++trials)
+    {
+        res = ccd(func, dir);
+
+        if(res >= 0)
+            break;
+
+        dir = Vector3d::Random();
+    }
+
+    if (trials == max_trials)
+    {
+        std::cout << "All rays are on edges, increase trials" << std::endl;
+        return false;
+    }
+
+    return res == 1;
 }
 
 bool vertexFaceCCD(const Vector3d &pts,
@@ -495,7 +466,8 @@ bool vertexFaceCCD(const Vector3d &pts,
         pts, v1s, v2s, v3s,
         pte, v1e, v2e, v3e);
 
-    return ccd(tf);
+    bool ok = retrial_ccd(tf);
+    return ok;
 }
 
 bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
@@ -509,13 +481,15 @@ bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
         a0e, a1e,
         b0e, b1e);
 
-    return ccd(eef);
+    return retrial_ccd(eef);
 }
 
-template bool ray_patch<TriPtF>(const TriPtF &, int);
-template bool ccd<TriPtF>(const TriPtF &);
+template int ray_patch<TriPtF>(const TriPtF &, int, const Vector3d &);
+template int ccd<TriPtF>(const TriPtF &, const Vector3d &);
+template bool retrial_ccd<TriPtF>(const TriPtF &func);
 
-template bool ray_patch<EdgeEdgeF>(const EdgeEdgeF &, int);
-template bool ccd<EdgeEdgeF>(const EdgeEdgeF &);
+template int ray_patch<EdgeEdgeF>(const EdgeEdgeF &, int, const Vector3d &);
+template int ccd<EdgeEdgeF>(const EdgeEdgeF &, const Vector3d &);
+template bool retrial_ccd<EdgeEdgeF>(const EdgeEdgeF &func);
 
 } // namespace eccd

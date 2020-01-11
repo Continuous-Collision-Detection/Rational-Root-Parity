@@ -43,7 +43,7 @@ private:
 class EdgeEdgeF
 {
 public:
-//edge [a0, a1] and [b0, b1]
+    //edge [a0, a1] and [b0, b1]
     EdgeEdgeF(const Vector3d &a0s, const Vector3d &a1s,
               const Vector3d &b0s, const Vector3d &b1s,
               const Vector3d &a0e, const Vector3d &a1e,
@@ -74,13 +74,16 @@ Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners);
 
 bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<std::array<int, 3>, 4> &tet_faces);
 
-bool ray_flat_patch(const std::array<Vector3r, 4> &corners);
+int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir);
 
 template <typename FuncF>
-bool ray_patch(const FuncF &func, int patch);
+int ray_patch(const FuncF &func, int patch, const Vector3d &dir);
 
 template <typename FuncF>
-bool ccd(const FuncF &func);
+int ccd(const FuncF &func, const Vector3d &dir);
+
+template <typename FuncF>
+bool retrial_ccd(const FuncF &func);
 
 bool vertexFaceCCD(const Vector3d &pts,
                    const Vector3d &v1s, const Vector3d &v2s, const Vector3d &v3s,

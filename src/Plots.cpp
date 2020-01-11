@@ -97,7 +97,11 @@ void save_prism(const std::string &name, const std::function<Vector3r(double, do
             out << "f " << indices[ki][ti] << " " << indices[ki + 1][ti] << " " << indices[ki + 1][ti + 1] << " " << indices[ki][ti + 1] << std::endl;
         }
     }
-
     out.close();
+    {
+    std::ofstream out("xx.obj");
+    out << "v 0 0 0" << std::endl;
+    out.close();
+    }
 }
 } // namespace eccd
