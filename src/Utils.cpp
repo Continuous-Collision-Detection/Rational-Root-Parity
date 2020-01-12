@@ -28,23 +28,23 @@ int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Ve
     const Rational v = (dir[0] * t1[1] * t2[2] - dir[0] * t1[2] * t2[1] - dir[1] * t1[0] * t2[2] + dir[1] * t1[2] * t2[0] + dir[2] * t1[0] * t2[1] - dir[2] * t1[1] * t2[0])/denom;
     const Rational t = (t1[0] * t2[1] * t3[2] - t1[0] * t2[2] * t3[1] - t1[1] * t2[0] * t3[2] + t1[1] * t2[2] * t3[0] + t1[2] * t2[0] * t3[1] - t1[2] * t2[1] * t3[0])/denom;
 
-    std::cout << "u: "<<u << std::endl;
-    std::cout << "v: "<<v << std::endl;
-    std::cout << "t: "<<t << std::endl;
+    // std::cout << "u: "<<u << std::endl;
+    // std::cout << "v: "<<v << std::endl;
+    // std::cout << "t: "<<t << std::endl;
 
-    std::ofstream xxx("bla.obj");
-    xxx << "v " << t1[0] << " " << t1[1] << " " << t1[2] << std::endl;
-    xxx << "v " << t2[0] << " " << t2[1] << " " << t2[2] << std::endl;
-    xxx << "v " << t3[0] << " " << t3[1] << " " << t3[2] << std::endl;
-    xxx<<"f 1 2 3\n";
+    // std::ofstream xxx("bla.obj");
+    // xxx << "v " << t1[0] << " " << t1[1] << " " << t1[2] << std::endl;
+    // xxx << "v " << t2[0] << " " << t2[1] << " " << t2[2] << std::endl;
+    // xxx << "v " << t3[0] << " " << t3[1] << " " << t3[2] << std::endl;
+    // xxx<<"f 1 2 3\n";
 
-    xxx<<"v 0 0 0\n";
-    Vector3r asd = t*dir;
-    xxx << "v " << asd[0] << " " << asd[1] << " " << asd[2] << std::endl;
-    xxx << "l 4 5\n";
-    xxx.close();
+    // xxx<<"v 0 0 0\n";
+    // Vector3r asd = t*dir;
+    // xxx << "v " << asd[0] << " " << asd[1] << " " << asd[2] << std::endl;
+    // xxx << "l 4 5\n";
+    // xxx.close();
 
-    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && t>= 0){
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u+v<=1 && t>= 0){
         if (t.get_sign() == 0)
             return 2;
         return 1;

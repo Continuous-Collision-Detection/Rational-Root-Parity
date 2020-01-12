@@ -68,7 +68,6 @@ TEST_CASE("Test Point-Triangle Exact Continous Collision Detection",
     bool hit = eccd::vertexFaceCCD(
         v0, v1, v2, v3,
         v0 + u0, v1 + u1, v2 + u1, v3 + u1);
-    std::cout<<"passing"<<std::endl;
 
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));

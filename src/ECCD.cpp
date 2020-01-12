@@ -244,6 +244,7 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (!ok)
     {
         std::cout << "n == 0" << std::endl;
+        exit(0);
         return 0;
     }
 
@@ -275,12 +276,12 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
         return 0;
     }
 
-    std::cout<<"asdasd"<<std::endl;
-    print(corners[0]);
-    print(corners[1]);
-    print(corners[2]);
-    print(corners[3]);
-    std::cout << "asdasd" << std::endl;
+    // std::cout<<"asdasd"<<std::endl;
+    // print(corners[0]);
+    // print(corners[1]);
+    // print(corners[2]);
+    // print(corners[3]);
+    // std::cout << "asdasd" << std::endl;
 
     int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
     if (res0 < 0)
@@ -410,11 +411,11 @@ int ccd(const FuncF &func, const Vector3d &dir)
     int S = 0;
     // std::cout<<dir<<std::endl;
 
-    std::ofstream out("xx.obj");
-    out<<"v 0 0 0"<<std::endl;
-    out<<"v "<<dir[0] <<" "<< dir[1]<<" "<<dir[2]<<std::endl;
-    out<<"l 1 2\n";
-    out.close();
+    // std::ofstream out("xx.obj");
+    // out<<"v 0 0 0"<<std::endl;
+    // out<<"v "<<dir[0] <<" "<< dir[1]<<" "<<dir[2]<<std::endl;
+    // out<<"l 1 2\n";
+    // out.close();
 
     const int n_patches = func.n_patches();
 
@@ -431,7 +432,7 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
-    std::cout<<"S "<<S<<std::endl;
+    // std::cout<<"S "<<S<<std::endl;
 
     const auto caps = func.top_bottom_faces();
 
@@ -449,7 +450,7 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
-    std::cout << "Sd " << S << std::endl;
+    // std::cout << "Sd " << S << std::endl;
 
     return ((S % 2) == 1) ? 1 : 0;
 }
@@ -495,7 +496,7 @@ bool vertexFaceCCD(const Vector3d &pts,
     // print(tf(0, 1, 1));
     // print(tf(1, 0, 1));
 
-    save_prism("prism.obj", tf, 1);
+    // save_prism("prism.obj", tf, 1);
 
     bool ok = retrial_ccd(tf);
     return ok;
