@@ -1,5 +1,4 @@
 #include "ECCD.hpp"
-#include "Plots.hpp"
 
 #include <fstream>
 #include <cassert>
@@ -165,12 +164,6 @@ Rational func_g(const Vector3r &x, const std::array<Vector3r, 4> &corners, const
 
 Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners)
 {
-    // const Rational ur(u);
-    // const Rational vr(v);
-
-    // const Rational tr(t);
-    // (ur, vr, tr);
-
     const Rational g012 = func_g(x, corners, {{0, 1, 2}});
     const Rational g132 = func_g(x, corners, {{1, 3, 2}});
     const Rational g013 = func_g(x, corners, {{0, 1, 3}});
@@ -244,13 +237,14 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (!ok)
     {
         std::cout << "n == 0" << std::endl;
-        exit(0);
+        assert(false);
         return 0;
     }
 
     if (inter_r)
     {
         std::cout<<"butterfly 1"<<std::endl;
+        assert(false);
         return 0;
     }
 
@@ -266,22 +260,17 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     }
     if (!ok)
     {
-        std::cout << "n == 0" << std::endl;
+        std::cout << "n == 0, cannot happend" << std::endl;
+        assert(false);
         return 0;
     }
 
     if (inter_r)
     {
         std::cout << "butterfly 2, cannot happend" << std::endl;
+        assert(false);
         return 0;
     }
-
-    // std::cout<<"asdasd"<<std::endl;
-    // print(corners[0]);
-    // print(corners[1]);
-    // print(corners[2]);
-    // print(corners[3]);
-    // std::cout << "asdasd" << std::endl;
 
     int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
     if (res0 < 0)
@@ -361,7 +350,9 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
     {
         const auto phi_v = phi(zero, corners);
 
-        Vector3d dir(0, 0, 1);
+        if (phi_v.get_sign() == 0)
+            return 2;
+
         const auto &F0 = phi_v.get_sign() > 0 ? tet_faces[Fm[0]] : tet_faces[Fp[0]];
         const auto &F1 = phi_v.get_sign() > 0 ? tet_faces[Fm[1]] : tet_faces[Fp[1]];
 
@@ -409,13 +400,6 @@ template <typename FuncF>
 int ccd(const FuncF &func, const Vector3d &dir)
 {
     int S = 0;
-    // std::cout<<dir<<std::endl;
-
-    // std::ofstream out("xx.obj");
-    // out<<"v 0 0 0"<<std::endl;
-    // out<<"v "<<dir[0] <<" "<< dir[1]<<" "<<dir[2]<<std::endl;
-    // out<<"l 1 2\n";
-    // out.close();
 
     const int n_patches = func.n_patches();
 
@@ -432,14 +416,10 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
-    // std::cout<<"S "<<S<<std::endl;
-
     const auto caps = func.top_bottom_faces();
 
     for (const auto &tri : caps)
     {
-        // if(orient3d(zero, tri[0], tri[1], tri[2]) == 0)
-        //     return 1;
         int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
         if(res == 2)
             return 1;
@@ -450,15 +430,12 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
-    // std::cout << "Sd " << S << std::endl;
-
     return ((S % 2) == 1) ? 1 : 0;
 }
 
 template <typename FuncF>
 bool retrial_ccd(const FuncF &func){
     static const int max_trials = 8;
-    // Vector3d dir(-1, 0.1, 0);
     Vector3d dir(1, 0, 0);
 
     int res = -1;
@@ -491,12 +468,21 @@ bool vertexFaceCCD(const Vector3d &pts,
         pts, v1s, v2s, v3s,
         pte, v1e, v2e, v3e);
 
-    // print(tf(1, 0, 0));
-    // print(tf(0, 1, 0));
-    // print(tf(0, 1, 1));
-    // print(tf(1, 0, 1));
+    if (pts == pte && v1s == v1e && v2s == v2e && v3s == v3e)
+    {
+        return false;
+    }
 
-    // save_prism("prism.obj", tf, 1);
+    if (
+        (pts - pte) == (v1s - v1e) &&
+        (pts - pte) == (v2s - v2e) &&
+        (pts - pte) == (v3s - v3e) &&
+        (v1s - v1e) == (v2s - v2e) &&
+        (v3s - v3e) == (v2s - v2e))
+    {
+        return false;
+    }
+
 
     bool ok = retrial_ccd(tf);
     return ok;
@@ -512,6 +498,21 @@ bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
         b0s, b1s,
         a0e, a1e,
         b0e, b1e);
+
+    if (a0s == a0e && a1s == a1e && b0s == b0e && b1s == b1e)
+    {
+        return false;
+    }
+
+    if (
+        (a0s - a0e) == (a1s - a1e) &&
+        (a0s - a0e) == (b0s - b0e) &&
+        (a0s - a0e) == (b1s - b1e) &&
+        (a1s - a1e) == (b1s - b1e) &&
+        (b1s - b1e) == (b0s - b0e))
+    {
+        return false;
+    }
 
     return retrial_ccd(eef);
 }

@@ -10,10 +10,10 @@ int main(int argc, char const *argv[])
     static const double EPSILON = std::numeric_limits<float>::epsilon();
     srand(42);
     // displacements
-    double v0z = -1;
-    double u0y = -2;
-    double u1y = 2;
-    double u0z = -0.1;
+    double v0z = 0;
+    double u0y = 1;
+    double u1y = 1;
+    double u0z = 0;
 
     Eigen::Vector3d v0(0, 1, v0z);
     // triangle = (v1, v2, v3)
