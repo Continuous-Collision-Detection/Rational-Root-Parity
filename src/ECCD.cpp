@@ -1,5 +1,7 @@
 #include "ECCD.hpp"
 
+#include "Plots.hpp"
+
 #include <fstream>
 #include <cassert>
 
@@ -49,8 +51,6 @@ void TriPtF::save(std::ostream &out) const
     write(v2e_, out);
     write(v3e_, out);
 }
-
-
 
 Vector3r TriPtF::operator()(double u, double v, double t) const
 {
@@ -266,9 +266,22 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     assert(orient3d(corners[0], corners[1], corners[2], corners[3]) == 0);
 
     Vector3r inter;
-    const Vector3r n = cross(corners[0] - corners[1], corners[2] - corners[1]);
+    const Vector3r n012 = cross(corners[0] - corners[1], corners[2] - corners[1]);
+    const Vector3r n023 = cross(corners[0] - corners[2], corners[3] - corners[2]);
+
+    bool is_012_zero = n012[0].get_sign() == 0 && n012[1].get_sign() == 0 && n012[2].get_sign() == 0;
+    bool is_023_zero = n023[0].get_sign() == 0 && n023[1].get_sign() == 0 && n023[2].get_sign() == 0;
+
     bool inter_r = false;
     bool ok = false;
+
+    const Vector3r &n = is_012_zero ? n023 : n012;
+
+    if (is_012_zero && is_023_zero)
+    {
+        return 0;
+    }
+
     for (int dim = 0; dim < 3; ++dim)
     {
         if (n[dim].get_sign() != 0)
@@ -281,16 +294,30 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (!ok)
     {
         // std::cout << "n == 0" << std::endl;
-        throw "n == 0";
-        assert(false);
+        // throw "n == 0";
+        // assert(false);
         return 0;
     }
 
     if (inter_r)
     {
-        // std::cout<<"butterfly 1"<<std::endl;
-        throw "butterfly 1";
-        assert(false);
+        if (corners[0] == corners[2] || corners[3] == corners[1])
+            throw "butterfly is two edges";
+        int res0 = corners[0] == corners[3] ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[3], inter);
+        if (res0 < 0)
+            return -1;
+
+        int res1 = corners[1] == corners[2] ? 0 : origin_ray_triangle_inter(dir, corners[1], corners[2], inter);
+        if (res1 < 0)
+            return -1;
+
+        if (res0 == 2 || res1 == 2)
+            return 2;
+
+        if (res0 > 0 || res1 > 0)
+            return 1;
+
+        //both no hit
         return 0;
     }
 
@@ -320,11 +347,11 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
         return 0;
     }
 
-    int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
+    int res0 = is_012_zero ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
     if (res0 < 0)
         return -1;
 
-    int res1 = origin_ray_triangle_inter(dir, corners[0], corners[2], corners[3]);
+    int res1 = is_023_zero ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[2], corners[3]);
     if (res1 < 0)
         return -1;
 
@@ -541,7 +568,7 @@ bool vertexFaceCCD(const Vector3d &pts,
     catch (const char *msg)
     {
         std::string name = "TF" + std::to_string(rand()) + ".txt";
-        std::cout <<"[ERROR] "<< msg << "out written to: " << name << std::endl;
+        std::cout << "[ERROR] " << msg << "out written to: " << name << std::endl;
         std::ofstream ofs(name, std::ios::binary);
         tf.save(ofs);
         ofs.close();
@@ -584,7 +611,7 @@ bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
     catch (const char *msg)
     {
         std::string name = "EE" + std::to_string(rand()) + ".txt";
-        std::cout <<"[ERROR] "<< msg << "out written to: " << name << std::endl;
+        std::cout << "[ERROR] " << msg << "out written to: " << name << std::endl;
         std::ofstream ofs(name, std::ios::binary);
         eef.save(ofs);
         ofs.close();

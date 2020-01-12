@@ -29,11 +29,23 @@ int main(int argc, char const *argv[])
             const Vector3d v2e = read(in);
             const Vector3d v3e = read(in);
 
+            // std::cout<<"\n"<<pts.transpose()<<"\n"<<v1s.transpose()<<"\n"<<v2s.transpose()<<"\n"<<v3s.transpose()<<"\n"<<pte.transpose()<<"\n"<<v1e.transpose()<<"\n"<<v2e.transpose()<<"\n"<<v3e.transpose()<<std::endl;
+
+            // std::cout<<(pts - pte)<<std::endl;
+            // std::cout << (v1s - v1e) << std::endl;
+            // std::cout << (v2s - v2e) << std::endl;
+            // std::cout << (v3s - v3e) << std::endl;
+
+
+
+
             bool hit = eccd::vertexFaceCCD(
                 pts,
                 v1s, v2s, v3s,
                 pte,
                 v1e, v2e, v3e);
+
+            std::cout << "hit? " << hit<<std::endl;
         }
         else
         {
