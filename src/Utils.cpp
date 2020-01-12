@@ -1,5 +1,6 @@
 #include "Utils.hpp"
 
+#include <fstream>
 #include <array>
 
 namespace eccd
@@ -14,21 +15,40 @@ int orient3d(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vect
 int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Vector3r &t2, const Vector3r &t3)
 {
     const Vector3r dir(dirf[0], dirf[1], dirf[2]);
-    Rational denom = dir[0] * t1[1] * t2[2] - dir[0] * t1[1] * t3[2] - dir[0] * t1[2] * t2[1] + dir[0] * t1[2] * t3[1] + dir[0] * t2[1] * t3[2] - dir[0] * t2[2] * t3[1] - dir[1] * t1[0] * t2[2] + dir[1] * t1[0] * t3[2] + dir[1] * t1[2] * t2[0] - dir[1] * t1[2] * t3[0] - dir[1] * t2[0] * t3[2] + dir[1] * t2[2] * t3[0] + dir[2] * t1[0] * t2[1] - dir[2] * t1[0] * t3[1] - dir[2] * t1[1] * t2[0] + dir[2] * t1[1] * t3[0] + dir[2] * t2[0] * t3[1] - dir[2] * t2[1] * t3[0];
+    const Rational denom = dir[0] * t1[1] * t2[2] - dir[0] * t1[1] * t3[2] - dir[0] * t1[2] * t2[1] + dir[0] * t1[2] * t3[1] + dir[0] * t2[1] * t3[2] - dir[0] * t2[2] * t3[1] - dir[1] * t1[0] * t2[2] + dir[1] * t1[0] * t3[2] + dir[1] * t1[2] * t2[0] - dir[1] * t1[2] * t3[0] - dir[1] * t2[0] * t3[2] + dir[1] * t2[2] * t3[0] + dir[2] * t1[0] * t2[1] - dir[2] * t1[0] * t3[1] - dir[2] * t1[1] * t2[0] + dir[2] * t1[1] * t3[0] + dir[2] * t2[0] * t3[1] - dir[2] * t2[1] * t3[0];
 
     //infinite intersections
     if (denom.get_sign() == 0)
         return -1;
 
-    if (denom.get_sign() < 0)
-        denom = -denom;
 
-    assert(denom.get_sign() > 0);
+    // assert(denom.get_sign() > 0);
 
-    const Rational u = dir[0] * t2[1] * t3[2] - dir[0] * t2[2] * t3[1] - dir[1] * t2[0] * t3[2] + dir[1] * t2[2] * t3[0] + dir[2] * t2[0] * t3[1] - dir[2] * t2[1] * t3[0];
-    const Rational v = dir[0] * t1[2] * t3[1] - dir[0] * t1[1] * t3[2] + dir[1] * t1[0] * t3[2] - dir[1] * t1[2] * t3[0] - dir[2] * t1[0] * t3[1] + dir[2] * t1[1] * t3[0];
-    if (u >= 0 && u <= denom && v >= 0 && v <= denom)
+    const Rational u = (-1*dir[0] * t1[1] * t3[2] + dir[0] * t1[2] * t3[1] + dir[1] * t1[0] * t3[2] - dir[1] * t1[2] * t3[0] - dir[2] * t1[0] * t3[1] + dir[2] * t1[1] * t3[0])/denom;
+    const Rational v = (dir[0] * t1[1] * t2[2] - dir[0] * t1[2] * t2[1] - dir[1] * t1[0] * t2[2] + dir[1] * t1[2] * t2[0] + dir[2] * t1[0] * t2[1] - dir[2] * t1[1] * t2[0])/denom;
+    const Rational t = (t1[0] * t2[1] * t3[2] - t1[0] * t2[2] * t3[1] - t1[1] * t2[0] * t3[2] + t1[1] * t2[2] * t3[0] + t1[2] * t2[0] * t3[1] - t1[2] * t2[1] * t3[0])/denom;
+
+    std::cout << "u: "<<u << std::endl;
+    std::cout << "v: "<<v << std::endl;
+    std::cout << "t: "<<t << std::endl;
+
+    std::ofstream xxx("bla.obj");
+    xxx << "v " << t1[0] << " " << t1[1] << " " << t1[2] << std::endl;
+    xxx << "v " << t2[0] << " " << t2[1] << " " << t2[2] << std::endl;
+    xxx << "v " << t3[0] << " " << t3[1] << " " << t3[2] << std::endl;
+    xxx<<"f 1 2 3\n";
+
+    xxx<<"v 0 0 0\n";
+    Vector3r asd = t*dir;
+    xxx << "v " << asd[0] << " " << asd[1] << " " << asd[2] << std::endl;
+    xxx << "l 4 5\n";
+    xxx.close();
+
+    if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && t>= 0){
+        if (t.get_sign() == 0)
+            return 2;
         return 1;
+    }
 
     return 0;
 }

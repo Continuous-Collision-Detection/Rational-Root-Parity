@@ -1,5 +1,7 @@
 #include "ECCD.hpp"
+#include "Plots.hpp"
 
+#include <fstream>
 #include <cassert>
 
 namespace eccd
@@ -37,8 +39,8 @@ Vector3r TriPtF::operator()(double u, double v, double t) const
     const Rational tr(t);
     return (1 - tr) * ptsr_ + tr * pter_ -
            ((1 - tr) * v1sr_ + t * v1er_) * (1 - ur - vr) -
-           ((1 - tr) * v2sr_ + t * v2er_) * u -
-           ((1 - tr) * v3sr_ + t * v3er_) * v;
+           ((1 - tr) * v2sr_ + t * v2er_) * ur -
+           ((1 - tr) * v3sr_ + t * v3er_) * vr;
 }
 
 std::array<Vector3r, 4> TriPtF::corners(int i) const
@@ -67,8 +69,8 @@ std::array<Vector3r, 4> TriPtF::corners(int i) const
 std::vector<std::array<Vector3r, 3>> TriPtF::top_bottom_faces() const
 {
     return {
-        {{(*this)(0, 0, 0), (*this)(0, 1, 0), (*this)(1, 1, 0)}},
-        {{(*this)(0, 0, 1), (*this)(0, 1, 1), (*this)(1, 1, 1)}}};
+        {{(*this)(0, 0, 0), (*this)(0, 1, 0), (*this)(1, 0, 0)}},
+        {{(*this)(0, 0, 1), (*this)(0, 1, 1), (*this)(1, 0, 1)}}};
 }
 
 
@@ -184,11 +186,10 @@ Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners)
 
 bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<std::array<int, 3>, 4> &tet_faces)
 {
-    int trials;
     const int max_trials = 8;
     Vector3d dir(0, 0, 1);
 
-    for (trials = 0; trials < max_trials; ++trials)
+    for (int trials = 0; trials < max_trials; ++trials)
     {
         int count = 0;
         for (int i = 0; i < 4; ++i)
@@ -218,11 +219,8 @@ bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<s
             return false;
     }
 
-    if (trials == max_trials)
-    {
-        std::cout << "All rays are on edges, increase trials" << std::endl;
-        assert(false);
-    }
+    std::cout << "All rays are on edges, increase trials" << std::endl;
+    assert(false);
 
     return false;
 }
@@ -246,13 +244,13 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (!ok)
     {
         std::cout << "n == 0" << std::endl;
-        exit(0);
+        return 0;
     }
 
     if (inter_r)
     {
         std::cout<<"butterfly 1"<<std::endl;
-        exit(0);
+        return 0;
     }
 
     ok = false;
@@ -268,14 +266,21 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (!ok)
     {
         std::cout << "n == 0" << std::endl;
-        exit(0);
+        return 0;
     }
 
     if (inter_r)
     {
         std::cout << "butterfly 2, cannot happend" << std::endl;
-        exit(0);
+        return 0;
     }
+
+    std::cout<<"asdasd"<<std::endl;
+    print(corners[0]);
+    print(corners[1]);
+    print(corners[2]);
+    print(corners[3]);
+    std::cout << "asdasd" << std::endl;
 
     int res0 = origin_ray_triangle_inter(dir, corners[0], corners[1], corners[2]);
     if (res0 < 0)
@@ -285,7 +290,9 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     if (res1 < 0)
         return -1;
 
-    //bad luck
+    if (res0 == 2 || res1 == 2)
+        return 2;
+
     if (res0 > 0 || res1 > 0)
         return 1;
 
@@ -385,8 +392,8 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
         if (res1 < 0)
             return -1;
 
-        bool res0b = (res0 == 1);
-        bool res1b = (res1 == 1);
+        bool res0b = (res0 >= 1);
+        bool res1b = (res1 >= 1);
 
         //res0b xor res1b
         return (!res0b != !res1b) ? 1 : 0;
@@ -401,12 +408,22 @@ template <typename FuncF>
 int ccd(const FuncF &func, const Vector3d &dir)
 {
     int S = 0;
+    // std::cout<<dir<<std::endl;
+
+    std::ofstream out("xx.obj");
+    out<<"v 0 0 0"<<std::endl;
+    out<<"v "<<dir[0] <<" "<< dir[1]<<" "<<dir[2]<<std::endl;
+    out<<"l 1 2\n";
+    out.close();
 
     const int n_patches = func.n_patches();
 
     for (int patch = 0; patch < n_patches; ++patch)
     {
         int is_ray_patch = ray_patch(func, patch, dir);
+        if(is_ray_patch == 2)
+            return 1;
+
         if(is_ray_patch == -1)
             return -1;
 
@@ -414,13 +431,17 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
-    std::cout<<S<<std::endl;
+    std::cout<<"S "<<S<<std::endl;
 
     const auto caps = func.top_bottom_faces();
 
     for (const auto &tri : caps)
     {
+        // if(orient3d(zero, tri[0], tri[1], tri[2]) == 0)
+        //     return 1;
         int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
+        if(res == 2)
+            return 1;
         if (res == -1)
             return -1;
 
@@ -428,13 +449,16 @@ int ccd(const FuncF &func, const Vector3d &dir)
             S++;
     }
 
+    std::cout << "Sd " << S << std::endl;
+
     return ((S % 2) == 1) ? 1 : 0;
 }
 
 template <typename FuncF>
 bool retrial_ccd(const FuncF &func){
     static const int max_trials = 8;
-    Vector3d dir(0, 0, 1);
+    // Vector3d dir(-1, 0.1, 0);
+    Vector3d dir(1, 0, 0);
 
     int res = -1;
     int trials;
@@ -454,7 +478,7 @@ bool retrial_ccd(const FuncF &func){
         return false;
     }
 
-    return res == 1;
+    return res >= 1;
 }
 
 bool vertexFaceCCD(const Vector3d &pts,
@@ -465,6 +489,13 @@ bool vertexFaceCCD(const Vector3d &pts,
     const auto tf = TriPtF(
         pts, v1s, v2s, v3s,
         pte, v1e, v2e, v3e);
+
+    // print(tf(1, 0, 0));
+    // print(tf(0, 1, 0));
+    // print(tf(0, 1, 1));
+    // print(tf(1, 0, 1));
+
+    save_prism("prism.obj", tf, 1);
 
     bool ok = retrial_ccd(tf);
     return ok;
