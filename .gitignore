@@ -2,3 +2,4 @@ bin*
 extern
 *.code-workspace
 *.bak
+.vscode

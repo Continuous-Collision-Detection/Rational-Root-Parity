@@ -14,6 +14,11 @@ TriPtF::TriPtF(const Vector3d &pts,
       pte_(pte),
       v1e_(v1e), v2e_(v2e), v3e_(v3e)
 {
+    init_rationals();
+}
+
+void TriPtF ::init_rationals()
+{
     for (int i = 0; i < 3; ++i)
     {
         ptsr_[i] = Rational(pts_[i]);
@@ -29,6 +34,23 @@ TriPtF::TriPtF(const Vector3d &pts,
         v3er_[i] = Rational(v3e_[i]);
     }
 }
+
+void TriPtF::save(std::ostream &out) const
+{
+    write(pts_, out);
+
+    write(v1s_, out);
+    write(v2s_, out);
+    write(v3s_, out);
+
+    write(pte_, out);
+
+    write(v1e_, out);
+    write(v2e_, out);
+    write(v3e_, out);
+}
+
+
 
 Vector3r TriPtF::operator()(double u, double v, double t) const
 {
@@ -61,6 +83,7 @@ std::array<Vector3r, 4> TriPtF::corners(int i) const
     }
     else
     {
+        throw "Prism invalid corner";
         assert(false);
     }
 }
@@ -72,7 +95,6 @@ std::vector<std::array<Vector3r, 3>> TriPtF::top_bottom_faces() const
         {{(*this)(0, 0, 1), (*this)(0, 1, 1), (*this)(1, 0, 1)}}};
 }
 
-
 ///////////////////////////////////////////////////////
 EdgeEdgeF::EdgeEdgeF(const Vector3d &a0s, const Vector3d &a1s,
                      const Vector3d &b0s, const Vector3d &b1s,
@@ -83,6 +105,11 @@ EdgeEdgeF::EdgeEdgeF(const Vector3d &a0s, const Vector3d &a1s,
 
       a0e_(a0e), a1e_(a1e),
       b0e_(b0e), b1e_(b1e)
+{
+    init_rationals();
+}
+
+void EdgeEdgeF::init_rationals()
 {
     for (int i = 0; i < 3; ++i)
     {
@@ -98,6 +125,21 @@ EdgeEdgeF::EdgeEdgeF(const Vector3d &a0s, const Vector3d &a1s,
         b1rs_[i] = Rational(b1s_[i]);
         b1re_[i] = Rational(b1e_[i]);
     }
+}
+
+void EdgeEdgeF::save(std::ostream &out) const
+{
+    write(a0s_, out);
+    write(a0e_, out);
+
+    write(a1s_, out);
+    write(a1e_, out);
+
+    write(b0s_, out);
+    write(b0e_, out);
+
+    write(b1s_, out);
+    write(b1e_, out);
 }
 
 Vector3r EdgeEdgeF::operator()(double ta, double tb, double t) const
@@ -144,10 +186,10 @@ std::array<Vector3r, 4> EdgeEdgeF::corners(int i) const
     }
     else
     {
+        throw "Hex invalid corner";
         assert(false);
     }
 }
-
 
 namespace
 {
@@ -212,7 +254,8 @@ bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<s
             return false;
     }
 
-    std::cout << "All rays are on edges, increase trials" << std::endl;
+    // std::cout << "All rays are on edges, increase trials" << std::endl;
+    throw "All rays are on edges, increase trials, for point in tet";
     assert(false);
 
     return false;
@@ -223,12 +266,13 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     assert(orient3d(corners[0], corners[1], corners[2], corners[3]) == 0);
 
     Vector3r inter;
-    const Vector3r n = cross(corners[0]-corners[1], corners[2] - corners[1]);
+    const Vector3r n = cross(corners[0] - corners[1], corners[2] - corners[1]);
     bool inter_r = false;
     bool ok = false;
-    for(int dim = 0; dim < 3; ++dim)
+    for (int dim = 0; dim < 3; ++dim)
     {
-        if (n[dim].get_sign() != 0){
+        if (n[dim].get_sign() != 0)
+        {
             inter_r = segment_segment_inter(corners[0], corners[1], corners[2], corners[3], inter, dim);
             ok = true;
             break;
@@ -236,14 +280,16 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     }
     if (!ok)
     {
-        std::cout << "n == 0" << std::endl;
+        // std::cout << "n == 0" << std::endl;
+        throw "n == 0";
         assert(false);
         return 0;
     }
 
     if (inter_r)
     {
-        std::cout<<"butterfly 1"<<std::endl;
+        // std::cout<<"butterfly 1"<<std::endl;
+        throw "butterfly 1";
         assert(false);
         return 0;
     }
@@ -260,14 +306,16 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     }
     if (!ok)
     {
-        std::cout << "n == 0, cannot happend" << std::endl;
+        // std::cout << "n == 0, cannot happend" << std::endl;
+        throw "n == 0, cannot happend";
         assert(false);
         return 0;
     }
 
     if (inter_r)
     {
-        std::cout << "butterfly 2, cannot happend" << std::endl;
+        // std::cout << "butterfly 2, cannot happend" << std::endl;
+        throw "butterfly 2, cannot happend";
         assert(false);
         return 0;
     }
@@ -337,14 +385,14 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
         }
         else
         {
-            std::cout << "Barycenter has phi zero" << std::endl;
+            // std::cout << "Barycenter has phi zero" << std::endl;
+            throw "Barycenter has phi zero";
             assert(false);
         }
     }
 
     assert(ip == 2);
     assert(im == 2);
-
 
     if (zero_inside)
     {
@@ -406,10 +454,10 @@ int ccd(const FuncF &func, const Vector3d &dir)
     for (int patch = 0; patch < n_patches; ++patch)
     {
         int is_ray_patch = ray_patch(func, patch, dir);
-        if(is_ray_patch == 2)
+        if (is_ray_patch == 2)
             return 1;
 
-        if(is_ray_patch == -1)
+        if (is_ray_patch == -1)
             return -1;
 
         if (is_ray_patch == 1)
@@ -421,7 +469,7 @@ int ccd(const FuncF &func, const Vector3d &dir)
     for (const auto &tri : caps)
     {
         int res = origin_ray_triangle_inter(dir, tri[0], tri[1], tri[2]);
-        if(res == 2)
+        if (res == 2)
             return 1;
         if (res == -1)
             return -1;
@@ -434,7 +482,8 @@ int ccd(const FuncF &func, const Vector3d &dir)
 }
 
 template <typename FuncF>
-bool retrial_ccd(const FuncF &func){
+bool retrial_ccd(const FuncF &func)
+{
     static const int max_trials = 8;
     Vector3d dir(1, 0, 0);
 
@@ -444,7 +493,7 @@ bool retrial_ccd(const FuncF &func){
     {
         res = ccd(func, dir);
 
-        if(res >= 0)
+        if (res >= 0)
             break;
 
         dir = Vector3d::Random();
@@ -452,7 +501,8 @@ bool retrial_ccd(const FuncF &func){
 
     if (trials == max_trials)
     {
-        std::cout << "All rays are on edges, increase trials" << std::endl;
+        // std::cout << "All rays are on edges, increase trials" << std::endl;
+        throw "All rays are on edges, increase trials";
         return false;
     }
 
@@ -483,9 +533,21 @@ bool vertexFaceCCD(const Vector3d &pts,
         return false;
     }
 
+    try
+    {
+        bool ok = retrial_ccd(tf);
+        return ok;
+    }
+    catch (const char *msg)
+    {
+        std::string name = "TF" + std::to_string(rand()) + ".txt";
+        std::cout <<"[ERROR] "<< msg << "out written to: " << name << std::endl;
+        std::ofstream ofs(name, std::ios::binary);
+        tf.save(ofs);
+        ofs.close();
 
-    bool ok = retrial_ccd(tf);
-    return ok;
+        return false;
+    }
 }
 
 bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
@@ -514,7 +576,21 @@ bool edgeEdgeCCD(const Vector3d &a0s, const Vector3d &a1s,
         return false;
     }
 
-    return retrial_ccd(eef);
+    try
+    {
+        bool ok = retrial_ccd(eef);
+        return ok;
+    }
+    catch (const char *msg)
+    {
+        std::string name = "EE" + std::to_string(rand()) + ".txt";
+        std::cout <<"[ERROR] "<< msg << "out written to: " << name << std::endl;
+        std::ofstream ofs(name, std::ios::binary);
+        eef.save(ofs);
+        ofs.close();
+
+        return false;
+    }
 }
 
 template int ray_patch<TriPtF>(const TriPtF &, int, const Vector3d &);

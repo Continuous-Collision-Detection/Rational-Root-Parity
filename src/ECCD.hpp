@@ -19,12 +19,15 @@ public:
            const Vector3d &pte,
            const Vector3d &v1e, const Vector3d &v2e, const Vector3d &v3e);
 
+    void save(std::ostream &out) const;
+
     Vector3r operator()(double u, double v, double t) const;
 
     std::array<Vector3r, 4> corners(int i) const;
     inline int n_patches() const { return 3; }
 
     std::vector<std::array<Vector3r, 3>> top_bottom_faces() const;
+
 
 private:
     const Vector3d &pts_;
@@ -38,6 +41,8 @@ private:
 
     Vector3r pter_;
     Vector3r v1er_, v2er_, v3er_;
+
+    void init_rationals();
 };
 
 class EdgeEdgeF
@@ -48,6 +53,8 @@ public:
               const Vector3d &b0s, const Vector3d &b1s,
               const Vector3d &a0e, const Vector3d &a1e,
               const Vector3d &b0e, const Vector3d &b1e);
+
+    void save(std::ostream &out) const;
 
     Vector3r operator()(double ta, double tb, double t) const;
 
@@ -68,6 +75,8 @@ private:
 
     Vector3r a0re_, a1re_;
     Vector3r b0re_, b1re_;
+
+    void init_rationals();
 };
 
 Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners);

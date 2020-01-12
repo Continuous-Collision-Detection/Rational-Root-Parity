@@ -27,6 +27,9 @@ void print(const V &v)
     std::cout << v[0] << " " << v[1] << " " << v[2] << std::endl;
 }
 
+void write(const Vector3d &v, std::ostream &out);
+Vector3d read(std::istream &in);
+
 int orient3d(const Vector3r &a, const Vector3r &b, const Vector3r &c, const Vector3r &d);
 
 int origin_ray_triangle_inter(const Vector3d &dir, const Vector3r &t1, const Vector3r &t2, const Vector3r &t3);

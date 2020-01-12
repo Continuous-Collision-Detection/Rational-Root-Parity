@@ -71,13 +71,16 @@ bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3
             if (p0[0] == p1[0] && p0[1] == p1[1] && p0[2] == p1[2])
             {
                 //TODO
-                std::cout << "degenerate line line intersection" << std::endl;
+                // std::cout << "degenerate line line intersection" << std::endl;
+                throw "degenerate line line intersection";
             }
             else
                 return false;
         }
-        if(ik == 2)
-            std::cout<<"shouldnt happend"<<std::endl;
+        if(ik == 2){
+            // std::cout<<"shouldnt happend"<<std::endl;
+            throw "segseg, shouldnt happend";
+        }
         return false;
     }
 
@@ -108,5 +111,28 @@ bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3
     assert(res[0] == p1[0] && res[1] == p1[1] && res[2] == p1[2]);
 #endif
     return true;
+}
+
+void write(const Vector3d &v, std::ostream &out)
+{
+    out.write(reinterpret_cast<const char *>(&v[0]), sizeof(v[0]));
+    out.write(reinterpret_cast<const char *>(&v[1]), sizeof(v[1]));
+    out.write(reinterpret_cast<const char *>(&v[2]), sizeof(v[2]));
+}
+
+Vector3d read(std::istream &in)
+{
+    Vector3d res;
+    double tmp;
+    in.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+    res[0] = tmp;
+
+    in.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+    res[1] = tmp;
+
+    in.read(reinterpret_cast<char *>(&tmp), sizeof(tmp));
+    res[2] = tmp;
+
+    return res;
 }
 } // namespace eccd
