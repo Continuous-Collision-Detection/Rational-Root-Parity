@@ -90,64 +90,87 @@ int main(int argc, char const *argv[])
     }
     else
     {
-        static const double EPSILON = std::numeric_limits<float>::epsilon();
-        srand(42);
-        // displacements
-        double v0z = 4;
-        double u0y = 0.5;
-        double u1y = 2;
-        double u0z = 6;
+        Eigen::RowVector3d ve0;
+        Eigen::RowVector3d ve1;
+        Eigen::RowVector3d vt0;
+        Eigen::RowVector3d vt1;
+        Eigen::RowVector3d vt2;
 
-        Eigen::Vector3d v0(0, 1, v0z);
-        // triangle = (v1, v2, v3)
-        Eigen::Vector3d v1(-1, 0, 1);
-        Eigen::Vector3d v2(1, 0, 1);
-        Eigen::Vector3d v3(0, 0, -1);
-
-        Eigen::Vector3d u0(0, u0y, u0z);
-
-        Eigen::Vector3d u1(0.3, u1y, 1);
-
-        bool hit = eccd::edgeEdgeCCD(
-            v0, v1, v2, v3,
-            v0 + u0, v1, v2, v3 + u1);
-
-        const auto tf = EdgeEdgeF(
-            v0, v1, v2, v3,
-            v0 + u0, v1, v2, v3 + u1);
-        const int n = 10;
-        // save_prism("prism.obj", tf, n);
-        save_hex("hex.obj", tf, n);
-
-        bool check = ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z()));
-        std::cout << check << " code: " << hit << std::endl;
-        assert(check == hit);
-
-        // Eigen::Vector3d pt(-1, -1, 0);
-        // Eigen::Vector3d v1(1, -1, 0);
-        // // e2 = (v2, v3)
-        // double e1x = 0;
-        // // GENERATE(-1 - EPSILON, -1, -1 + EPSILON, -0.5, 0, 0.5, 1 - EPSILON, 1, 1 + EPSILON);
-        // Eigen::Vector3d v2(e1x, 1, -1);
-        // Eigen::Vector3d v3(e1x, 1, 1);
-
+        ve0 << 0.898135, 0.997719, 0.597815;
+        ve1 << 0.854697 , 1.00399, 0.552242;
+        vt0 << 0.910926, 0.989266, 0.646564;
+        vt1 << 0.855608, 0.972931, 0.647216;
+        vt2 << 0.852431, 0.984994, 0.599408;
+        int res = eccd::segment_triangle_inter(ve0, ve1, vt0, vt1, vt2);
+        std::ofstream os("xxx.obj");
+        os << "v " << ve0 << "\n";
+        os << "v " << ve1 << "\n";
+        os << "v " << ve1 << "\n";
+        os << "v " << vt0 << "\n";
+        os << "v " << vt1 << "\n";
+        os << "v " << vt2 << "\n";
+        os << "f 1 2 3\n";
+        os << "f 4 5 6\n";
+        os.close();
+        std::cout<<res<<std::endl;
+        // static const double EPSILON = std::numeric_limits<float>::epsilon();
+        // srand(42);
         // // displacements
-        // double y_displacement = -1;
-        // //GENERATE(-1.0, 0.0, 1 - EPSILON, 1.0, 1 + EPSILON, 2.0);
-        // Eigen::Vector3d u0(0, y_displacement, 0);
-        // Eigen::Vector3d u1(0, -y_displacement, 0);
-        // Eigen::Vector3d up(1, -y_displacement, 0);
+        // double v0z = 4;
+        // double u0y = 0.5;
+        // double u1y = 2;
+        // double u0z = 6;
 
-        // const auto tf = TriPtF(
-        //     pt, v1, v2, v3,
-        //     pt+up, v1 + u0, v2 + u1, v3 + u1);
+        // Eigen::Vector3d v0(0, 1, v0z);
+        // // triangle = (v1, v2, v3)
+        // Eigen::Vector3d v1(-1, 0, 1);
+        // Eigen::Vector3d v2(1, 0, 1);
+        // Eigen::Vector3d v3(0, 0, -1);
 
-        // const auto corners = tf.corners(0);
+        // Eigen::Vector3d u0(0, u0y, u0z);
 
+        // Eigen::Vector3d u1(0.3, u1y, 1);
+
+        // bool hit = eccd::edgeEdgeCCD(
+        //     v0, v1, v2, v3,
+        //     v0 + u0, v1, v2, v3 + u1);
+
+        // const auto tf = EdgeEdgeF(
+        //     v0, v1, v2, v3,
+        //     v0 + u0, v1, v2, v3 + u1);
         // const int n = 10;
-        // save_prism("prism.obj", tf, n);
+        // // save_prism("prism.obj", tf, n);
+        // save_hex("hex.obj", tf, n);
 
-        // ccd(tf);
+        // bool check = ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z()));
+        // std::cout << check << " code: " << hit << std::endl;
+        // assert(check == hit);
+
+        // // Eigen::Vector3d pt(-1, -1, 0);
+        // // Eigen::Vector3d v1(1, -1, 0);
+        // // // e2 = (v2, v3)
+        // // double e1x = 0;
+        // // // GENERATE(-1 - EPSILON, -1, -1 + EPSILON, -0.5, 0, 0.5, 1 - EPSILON, 1, 1 + EPSILON);
+        // // Eigen::Vector3d v2(e1x, 1, -1);
+        // // Eigen::Vector3d v3(e1x, 1, 1);
+
+        // // // displacements
+        // // double y_displacement = -1;
+        // // //GENERATE(-1.0, 0.0, 1 - EPSILON, 1.0, 1 + EPSILON, 2.0);
+        // // Eigen::Vector3d u0(0, y_displacement, 0);
+        // // Eigen::Vector3d u1(0, -y_displacement, 0);
+        // // Eigen::Vector3d up(1, -y_displacement, 0);
+
+        // // const auto tf = TriPtF(
+        // //     pt, v1, v2, v3,
+        // //     pt+up, v1 + u0, v2 + u1, v3 + u1);
+
+        // // const auto corners = tf.corners(0);
+
+        // // const int n = 10;
+        // // save_prism("prism.obj", tf, n);
+
+        // // ccd(tf);
     }
     return 0;
 }
