@@ -28,9 +28,20 @@ int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Ve
 
     // assert(denom.get_sign() > 0);
 
+    // std::ofstream os("blaa.obj");
+    // os << "v " << t1[0] << " " << t1[1] << " " << t1[2] << "\n";
+    // os << "v " << t2[0] << " " << t2[1] << " " << t2[2] << "\n";
+    // os << "v " << t3[0] << " " << t3[1] << " " << t3[2] << "\n";
+    // os << "f 1 2 3\n";
+    // os.close();
+
     const Rational u = (-1*dir[0] * t1[1] * t3[2] + dir[0] * t1[2] * t3[1] + dir[1] * t1[0] * t3[2] - dir[1] * t1[2] * t3[0] - dir[2] * t1[0] * t3[1] + dir[2] * t1[1] * t3[0])/denom;
     const Rational v = (dir[0] * t1[1] * t2[2] - dir[0] * t1[2] * t2[1] - dir[1] * t1[0] * t2[2] + dir[1] * t1[2] * t2[0] + dir[2] * t1[0] * t2[1] - dir[2] * t1[1] * t2[0])/denom;
     const Rational t = (t1[0] * t2[1] * t3[2] - t1[0] * t2[2] * t3[1] - t1[1] * t2[0] * t3[2] + t1[1] * t2[2] * t3[0] + t1[2] * t2[0] * t3[1] - t1[2] * t2[1] * t3[0])/denom;
+
+    // std::cout<<t<<std::endl;
+    // std::cout << u << std::endl;
+    // std::cout << v << std::endl;
 
     if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u+v<=1 && t>= 0){
         if (t.get_sign() == 0)

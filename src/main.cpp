@@ -45,6 +45,14 @@ int main(int argc, char const *argv[])
                 pte,
                 v1e, v2e, v3e);
 
+            const TriPtF tf(
+                pts,
+                v1s, v2s, v3s,
+                pte,
+                v1e, v2e, v3e);
+            const int n = 1;
+            save_prism("prism.obj", tf, n);
+
             std::cout << "hit? " << hit<<std::endl;
         }
         else
@@ -75,10 +83,10 @@ int main(int argc, char const *argv[])
         static const double EPSILON = std::numeric_limits<float>::epsilon();
         srand(42);
         // displacements
-        double v0z = 0;
-        double u0y = 1;
-        double u1y = 1;
-        double u0z = 0;
+        double v0z = 4;
+        double u0y = 0.5;
+        double u1y = 2;
+        double u0z = 6;
 
         Eigen::Vector3d v0(0, 1, v0z);
         // triangle = (v1, v2, v3)
@@ -88,17 +96,17 @@ int main(int argc, char const *argv[])
 
         Eigen::Vector3d u0(0, u0y, u0z);
 
-        Eigen::Vector3d u1(0, u1y, 0);
+        Eigen::Vector3d u1(0.3, u1y, 1);
 
         bool hit = eccd::vertexFaceCCD(
             v0, v1, v2, v3,
-            v0 + u0, v1 + u1, v2 + u1, v3 + u1);
+            v0 + u0, v1, v2, v3 + u1);
 
-        // const auto tf = TriPtF(
-        //     v0, v1, v2, v3,
-        //     v0 + u0, v1 + u1, v2 + u1, v3 + u1);
-        // const int n = 10;
-        // save_prism("prism.obj", tf, n);
+        const auto tf = TriPtF(
+            v0, v1, v2, v3,
+            v0 + u0, v1, v2, v3 + u1);
+        const int n = 10;
+        save_prism("prism.obj", tf, n);
 
         bool check = ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z()));
         std::cout << check << " code: " << hit << std::endl;

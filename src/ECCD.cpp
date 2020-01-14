@@ -206,13 +206,14 @@ Rational func_g(const Vector3r &x, const std::array<Vector3r, 4> &corners, const
 
 Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners)
 {
-    const Rational g012 = func_g(x, corners, {{0, 1, 2}});
-    const Rational g132 = func_g(x, corners, {{1, 3, 2}});
-    const Rational g013 = func_g(x, corners, {{0, 1, 3}});
-    const Rational g032 = func_g(x, corners, {{0, 3, 2}});
+    static const std::array<int, 4> vv = {{0, 1, 2, 3}};
+    const Rational g012 = func_g(x, corners, {{vv[0], vv[1], vv[2]}});
+    const Rational g132 = func_g(x, corners, {{vv[1], vv[3], vv[2]}});
+    const Rational g013 = func_g(x, corners, {{vv[0], vv[1], vv[3]}});
+    const Rational g032 = func_g(x, corners, {{vv[0], vv[3], vv[2]}});
 
-    const Rational h12 = g012 * g132;
-    const Rational h03 = g013 * g032;
+    const Rational h12 = g012 * g032;
+    const Rational h03 = g132 * g013;
 
     const Rational phi = h12 - h03;
 
@@ -368,10 +369,14 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
 template <typename FuncF>
 int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
 {
+    //0 1 2
+    //1 3 2
+    //0 2 3
+    //1 3 0
     static const std::array<std::array<int, 3>, 4> tet_faces = {{{{0, 1, 2}},
-                                                                 {{0, 1, 3}},
-                                                                 {{1, 2, 3}},
-                                                                 {{2, 0, 3}}}};
+                                                                 {{1, 3, 2}},
+                                                                 {{0, 2, 3}},
+                                                                 {{1, 3, 0}}}};
 
     static const Vector3r zero(0, 0, 0);
 
@@ -389,13 +394,35 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
 
     bool zero_inside = is_origin_in_tet(corners, tet_faces);
 
+    // const Vector3r e0 = (corners[0] + corners[1]) / Rational(2);
+    // const Vector3r e1 = (corners[1] + corners[2]) / Rational(2);
+    // const Vector3r e2 = (corners[2] + corners[3]) / Rational(2);
+    // const Vector3r e3 = (corners[0] + corners[3]) / Rational(2);
+
+    // std::cout << "phi "<<phi(e0, corners) << std::endl;
+    // std::cout << "phi "<<phi(e1, corners) << std::endl;
+    // std::cout << "phi "<<phi(e2, corners) << std::endl;
+    // std::cout << "phi "<<phi(e3, corners) << std::endl;
+    // exit(0);
+
     for (int i = 0; i < 4; ++i)
     {
         const auto &f = tet_faces[i];
+        assert(f.size() == 3);
 
-        const Vector3r bary = (corners[f[0]] + corners[f[1]] + corners[f[2]]) / 3;
+        const Vector3r bary = (corners[f[0]] + corners[f[1]] + corners[f[2]]) / Rational(3);
+
+        // const Vector3r e0 = (corners[f[0]] + corners[f[2]]) / Rational(2);
+        // const Vector3r e1 = (corners[f[1]] + corners[f[2]]) / Rational(2);
+        // const Vector3r e2 = (corners[f[0]] + corners[f[2]]) / Rational(2);
+
+        // std::cout << phi(e0, corners) << std::endl;
+        // std::cout << phi(e1, corners) << std::endl;
+        // std::cout << phi(e2, corners) << std::endl;
+        // print(bary);
 
         const auto phi_v = phi(bary, corners);
+        // std::cout << phi_v << std::endl;
         assert(phi_v.get_sign() != 0);
         assert(ip <= 2);
         assert(im <= 2);
@@ -420,6 +447,31 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
 
     assert(ip == 2);
     assert(im == 2);
+
+    // {
+    //     std::ofstream os("blaam.obj");
+    //     os << "v " << corners[tet_faces[Fm[0]][0]][0] << " " << corners[tet_faces[Fm[0]][0]][1] << " " << corners[tet_faces[Fm[0]][0]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fm[0]][1]][0] << " " << corners[tet_faces[Fm[0]][1]][1] << " " << corners[tet_faces[Fm[0]][1]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fm[0]][2]][0] << " " << corners[tet_faces[Fm[0]][2]][1] << " " << corners[tet_faces[Fm[0]][2]][2] << "\n";
+    //     os << "f 1 2 3\n";
+    //     os << "v " << corners[tet_faces[Fm[1]][0]][0] << " " << corners[tet_faces[Fm[1]][0]][1] << " " << corners[tet_faces[Fm[1]][0]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fm[1]][1]][0] << " " << corners[tet_faces[Fm[1]][1]][1] << " " << corners[tet_faces[Fm[1]][1]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fm[1]][2]][0] << " " << corners[tet_faces[Fm[1]][2]][1] << " " << corners[tet_faces[Fm[1]][2]][2] << "\n";
+    //     os << "f 4 5 6\n";
+    //     os.close();
+    // }
+    // {
+    //     std::ofstream os("blaap.obj");
+    //     os << "v " << corners[tet_faces[Fp[0]][0]][0] << " " << corners[tet_faces[Fp[0]][0]][1] << " " << corners[tet_faces[Fp[0]][0]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fp[0]][1]][0] << " " << corners[tet_faces[Fp[0]][1]][1] << " " << corners[tet_faces[Fp[0]][1]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fp[0]][2]][0] << " " << corners[tet_faces[Fp[0]][2]][1] << " " << corners[tet_faces[Fp[0]][2]][2] << "\n";
+    //     os << "f 1 2 3\n";
+    //     os << "v " << corners[tet_faces[Fp[1]][0]][0] << " " << corners[tet_faces[Fp[1]][0]][1] << " " << corners[tet_faces[Fp[1]][0]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fp[1]][1]][0] << " " << corners[tet_faces[Fp[1]][1]][1] << " " << corners[tet_faces[Fp[1]][1]][2] << "\n";
+    //     os << "v " << corners[tet_faces[Fp[1]][2]][0] << " " << corners[tet_faces[Fp[1]][2]][1] << " " << corners[tet_faces[Fp[1]][2]][2] << "\n";
+    //     os << "f 4 5 6\n";
+    //     os.close();
+    // }
 
     if (zero_inside)
     {
