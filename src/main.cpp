@@ -98,15 +98,16 @@ int main(int argc, char const *argv[])
 
         Eigen::Vector3d u1(0.3, u1y, 1);
 
-        bool hit = eccd::vertexFaceCCD(
+        bool hit = eccd::edgeEdgeCCD(
             v0, v1, v2, v3,
             v0 + u0, v1, v2, v3 + u1);
 
-        const auto tf = TriPtF(
+        const auto tf = EdgeEdgeF(
             v0, v1, v2, v3,
             v0 + u0, v1, v2, v3 + u1);
         const int n = 10;
-        save_prism("prism.obj", tf, n);
+        // save_prism("prism.obj", tf, n);
+        save_hex("hex.obj", tf, n);
 
         bool check = ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z()));
         std::cout << check << " code: " << hit << std::endl;
