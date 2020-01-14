@@ -36,4 +36,6 @@ int origin_ray_triangle_inter(const Vector3d &dir, const Vector3r &t1, const Vec
 
 bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3r &s1, const Vector3r &e1, Vector3r &res, int axis);
 
+int segment_triangle_inter(const Vector3d &e0, const Vector3d &e1, const Vector3d &t1, const Vector3d &t2, const Vector3d &t3);
+
 } // namespace eccd

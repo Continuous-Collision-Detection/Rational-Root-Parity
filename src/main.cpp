@@ -58,15 +58,15 @@ int main(int argc, char const *argv[])
         else
         {
             const Vector3d a0s = read(in);
-            const Vector3d a0e = read(in);
-
             const Vector3d a1s = read(in);
-            const Vector3d a1e = read(in);
 
             const Vector3d b0s = read(in);
-            const Vector3d b0e = read(in);
-
             const Vector3d b1s = read(in);
+
+            const Vector3d a0e = read(in);
+            const Vector3d a1e = read(in);
+
+            const Vector3d b0e = read(in);
             const Vector3d b1e = read(in);
 
             bool hit = eccd::edgeEdgeCCD(
@@ -74,6 +74,16 @@ int main(int argc, char const *argv[])
                 b0s, b1s,
                 a0e, a1e,
                 b0e, b1e);
+
+            const EdgeEdgeF eef(
+                a0s, a1s,
+                b0s, b1s,
+                a0e, a1e,
+                b0e, b1e);
+            const int n = 20;
+            save_hex("hex.obj", eef, n);
+
+            std::cout << "hit? " << hit << std::endl;
         }
 
         in.close();

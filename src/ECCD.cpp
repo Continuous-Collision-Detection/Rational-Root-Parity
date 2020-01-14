@@ -114,15 +114,15 @@ void EdgeEdgeF::init_rationals()
     for (int i = 0; i < 3; ++i)
     {
         a0rs_[i] = Rational(a0s_[i]);
-        a0re_[i] = Rational(a0e_[i]);
-
         a1rs_[i] = Rational(a1s_[i]);
-        a1re_[i] = Rational(a1e_[i]);
 
         b0rs_[i] = Rational(b0s_[i]);
-        b0re_[i] = Rational(b0e_[i]);
-
         b1rs_[i] = Rational(b1s_[i]);
+
+        a0re_[i] = Rational(a0e_[i]);
+        a1re_[i] = Rational(a1e_[i]);
+
+        b0re_[i] = Rational(b0e_[i]);
         b1re_[i] = Rational(b1e_[i]);
     }
 }
