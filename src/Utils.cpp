@@ -44,13 +44,15 @@ int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Ve
     // std::cout << u << std::endl;
     // std::cout << v << std::endl;
 
-    //on a corner
-    if(u.get_sign() == 0 || v.get_sign() == 0)
-        return -1;
+
 
     if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u+v<=1 && t>= 0){
         if (t.get_sign() == 0)
             return 2;
+        //on a corner
+        if (u.get_sign() == 0 || v.get_sign() == 0)
+            return -1;
+
         return 1;
     }
 
