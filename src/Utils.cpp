@@ -19,6 +19,7 @@ int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Ve
 
     // const auto n = cross(t1 - t2, t3 - t2);
     // print(n);
+    // std::cout<<denom<<std::endl;
 
 
     //infinite intersections
@@ -42,6 +43,10 @@ int origin_ray_triangle_inter(const Vector3d &dirf, const Vector3r &t1, const Ve
     // std::cout<<t<<std::endl;
     // std::cout << u << std::endl;
     // std::cout << v << std::endl;
+
+    //on a corner
+    if(u.get_sign() == 0 || v.get_sign() == 0)
+        return -1;
 
     if (u >= 0 && u <= 1 && v >= 0 && v <= 1 && u+v<=1 && t>= 0){
         if (t.get_sign() == 0)
@@ -67,7 +72,8 @@ bool segment_segment_inter(const Vector3r &s0, const Vector3r &e0, const Vector3
     const Rational t0 = (e1[i1] * s0[i2] - e1[i1] * s1[i2] - e1[i2] * s0[i1] + e1[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1]) / dd;
     const Rational t1 = (e0[i1] * s0[i2] - e0[i1] * s1[i2] - e0[i2] * s0[i1] + e0[i2] * s1[i1] + s0[i1] * s1[i2] - s0[i2] * s1[i1]) / dd;
 
-    if (t0 < 0 || t0 > 1 || t1 < 0 || t1 > 1)
+    //we exclude intersection on corners
+    if (t0 <= 0 || t0 >= 1 || t1 <= 0 || t1 >= 1)
     {
         return false;
     }

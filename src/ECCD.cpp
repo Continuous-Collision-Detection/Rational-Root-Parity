@@ -304,11 +304,13 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     {
         if (corners[0] == corners[2] || corners[3] == corners[1])
             throw "butterfly is two edges";
-        int res0 = corners[0] == corners[3] ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[3], inter);
+        bool is_line1 = corners[0] == corners[3] || corners[0] == inter || inter == corners[3];
+        int res0 = is_line1 ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[3], inter);
         if (res0 < 0)
             return -1;
 
-        int res1 = corners[1] == corners[2] ? 0 : origin_ray_triangle_inter(dir, corners[1], corners[2], inter);
+        bool is_line2 = corners[1] == corners[2] || corners[1] == inter || inter == corners[2];
+        int res1 = is_line2 ? 0 : origin_ray_triangle_inter(dir, corners[1], corners[2], inter);
         if (res1 < 0)
             return -1;
 
@@ -344,11 +346,13 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
     {
         if (corners[1] == corners[3] || corners[2] == corners[0])
             throw "butterfly 2 is two edges";
-        int res0 = corners[0] == corners[1] ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[1], inter);
+        bool is_line1 = corners[0] == corners[1] || corners[0] == inter || inter == corners[1];
+        int res0 = is_line1 ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[1], inter);
         if (res0 < 0)
             return -1;
 
-        int res1 = corners[2] == corners[3] ? 0 : origin_ray_triangle_inter(dir, corners[2], corners[3], inter);
+        bool is_line2 = corners[2] == corners[3] || corners[2] == inter || inter == corners[3];
+        int res1 = is_line2 ? 0 : origin_ray_triangle_inter(dir, corners[2], corners[3], inter);
         if (res1 < 0)
             return -1;
 

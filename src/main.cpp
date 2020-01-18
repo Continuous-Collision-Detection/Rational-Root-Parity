@@ -58,15 +58,15 @@ int main(int argc, char const *argv[])
         else
         {
             const Vector3d a0s = read(in);
-            const Vector3d a1s = read(in);
-
-            const Vector3d b0s = read(in);
-            const Vector3d b1s = read(in);
-
             const Vector3d a0e = read(in);
+
+            const Vector3d a1s = read(in);
             const Vector3d a1e = read(in);
 
+            const Vector3d b0s = read(in);
             const Vector3d b0e = read(in);
+
+            const Vector3d b1s = read(in);
             const Vector3d b1e = read(in);
 
             bool hit = eccd::edgeEdgeCCD(
