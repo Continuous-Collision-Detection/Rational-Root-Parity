@@ -342,9 +342,23 @@ int ray_flat_patch(const std::array<Vector3r, 4> &corners, const Vector3d &dir)
 
     if (inter_r)
     {
-        // std::cout << "butterfly 2, cannot happend" << std::endl;
-        throw "butterfly 2, cannot happend";
-        assert(false);
+        if (corners[1] == corners[3] || corners[2] == corners[0])
+            throw "butterfly 2 is two edges";
+        int res0 = corners[0] == corners[1] ? 0 : origin_ray_triangle_inter(dir, corners[0], corners[1], inter);
+        if (res0 < 0)
+            return -1;
+
+        int res1 = corners[2] == corners[3] ? 0 : origin_ray_triangle_inter(dir, corners[2], corners[3], inter);
+        if (res1 < 0)
+            return -1;
+
+        if (res0 == 2 || res1 == 2)
+            return 2;
+
+        if (res0 > 0 || res1 > 0)
+            return 1;
+
+        //both no hit
         return 0;
     }
 
@@ -580,6 +594,7 @@ bool retrial_ccd(const FuncF &func)
 
     if (trials == max_trials)
     {
+
         // std::cout << "All rays are on edges, increase trials" << std::endl;
         throw "All rays are on edges, increase trials";
         return false;
