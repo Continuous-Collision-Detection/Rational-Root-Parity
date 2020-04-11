@@ -60,10 +60,17 @@ IF(NOT ${GMP_FOUND})
         MESSAGE(FATAL_ERROR "Cannot find GMP")
 ENDIF()
 
-
-eccd_download_eigen()
-
-
+# Eigen
+if(NOT TARGET Eigen3::Eigen)
+  eccd_download_eigen()
+  add_library(${PROJECT_NAME}_eigen INTERFACE)
+  target_include_directories(${PROJECT_NAME}_eigen SYSTEM INTERFACE
+    $<BUILD_INTERFACE:${THIRD_PARTY_DIR}/eigen>
+    $<INSTALL_INTERFACE:include>
+  )
+  set_property(TARGET ${PROJECT_NAME}_eigen PROPERTY EXPORT_NAME Eigen3::Eigen)
+  add_library(Eigen3::Eigen ALIAS ${PROJECT_NAME}_eigen)
+endif()
 
 ################################################################################
 
@@ -86,7 +93,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(${PROJECT_NAME}  ${SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${THIRD_PARTY_DIR}/eigen)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GMP_INCLUDE_DIRS} src)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${GMP_LIBRARIES})
@@ -113,4 +120,3 @@ if(ECCD_TOPLEVEL_PROJECT)
 	enable_testing()
 	add_subdirectory(tests)
 endif()
-
