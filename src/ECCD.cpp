@@ -233,11 +233,10 @@ bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<s
         for (int i = 0; i < 4; ++i)
         {
             const auto &f = tet_faces[i];
-            int res;
-            if(orient3d(zero, corners[f[0]], corners[f[1]], corners[f[2]])){
+            const int res = origin_ray_triangle_inter(dir, corners[f[0]], corners[f[1]], corners[f[2]]);
+
+            if (res == 2)
                 return true;
-            } else
-                res = origin_ray_triangle_inter(dir, corners[f[0]], corners[f[1]], corners[f[2]]);
 
             //bad luck
             if (res < 0)
