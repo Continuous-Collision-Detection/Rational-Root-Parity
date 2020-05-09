@@ -1,13 +1,45 @@
 #include <catch.hpp>
 
 #include "ECCD.hpp"
+#include "Plots.hpp"
 
 #include <stdlib.h>
 
 static const double EPSILON = std::numeric_limits<float>::epsilon();
 
+TEST_CASE("Corner case",
+          "Corner case")
+{
+    const double v1 = 0.5028730361513796;
+    const double v11 = 0.5028730361513793;
+    const double v2 = 2.220446049250313e-16;
+    const double v3 = 0.27762640378443826;
+    const double v31 = 0.2776264037844385;
+    const double v32 = 1.0000000000000002;
+
+    const Eigen::Vector3d pts(1, 0.5, 1);
+    const Eigen::Vector3d v1s(1, v1, 1);
+    const Eigen::Vector3d v2s(0, v1, v2);
+    const Eigen::Vector3d v3s(1, v11, 0);
+    const Eigen::Vector3d pte(1, 0.5, 1);
+    const Eigen::Vector3d v1e(1, v31, 1);
+    const Eigen::Vector3d v2e(0, v3, 0);
+    const Eigen::Vector3d v3e(v32, v3, 0);
+
+    // const eccd::TriPtF tf(
+    //     pts,
+    //     v1s, v2s, v3s,
+    //     pte,
+    //     v1e, v2e, v3e);
+    // const int n = 10;
+    // eccd::save_prism("prism.obj", tf, n);
+
+    bool hit = eccd::vertexFaceCCD(pts, v1s, v2s, v3s, pte, v1e, v2e, v3e);
+    CHECK(hit);
+}
+
 TEST_CASE("Test Edge-Edge Exact Continous Collision Detection",
-    "[ccd][exact-ccd][edge-edge]")
+          "[ccd][exact-ccd][edge-edge]")
 {
     // EE Exact CCD unit test
     // e0 = (v0, v1)
@@ -26,7 +58,6 @@ TEST_CASE("Test Edge-Edge Exact Continous Collision Detection",
     Eigen::Vector3d u0(0, y_displacement, 0);
     Eigen::Vector3d u1(0, -y_displacement, 0);
 
-
     bool hit = eccd::edgeEdgeCCD(
         v0, v1, v2, v3,
         v0 + u0, v1 + u0, v2 + u1, v3 + u1);
@@ -36,7 +67,7 @@ TEST_CASE("Test Edge-Edge Exact Continous Collision Detection",
 }
 
 TEST_CASE("Test Point-Triangle Exact Continous Collision Detection",
-    "[ccd][exact-ccd][point-triangle]")
+          "[ccd][exact-ccd][point-triangle]")
 {
     srand(42);
     // PT Exact CCD unit test
@@ -55,7 +86,6 @@ TEST_CASE("Test Point-Triangle Exact Continous Collision Detection",
     double u1y = GENERATE(-1.0, 0.0, 0.5 - EPSILON, 0.5, 0.5 + EPSILON, 1.0, 2.0);
     Eigen::Vector3d u1(0, u1y, 0);
 
-
     SECTION("Clockwise triangle")
     {
         // already in clockwise order
@@ -72,5 +102,3 @@ TEST_CASE("Test Point-Triangle Exact Continous Collision Detection",
     CAPTURE(v0z, u0y, u1y, u0z, EPSILON);
     CHECK(hit == ((-u0y + u1y >= 1) && (v0z + u0z >= v3.z())));
 }
-
-

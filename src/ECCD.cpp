@@ -222,6 +222,8 @@ Rational phi(const Vector3r x, const std::array<Vector3r, 4> &corners)
 
 bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<std::array<int, 3>, 4> &tet_faces)
 {
+    static const Vector3r zero(0, 0, 0);
+
     const int max_trials = 8;
     Vector3d dir(0, 0, 1);
 
@@ -231,7 +233,11 @@ bool is_origin_in_tet(const std::array<Vector3r, 4> &corners, const std::array<s
         for (int i = 0; i < 4; ++i)
         {
             const auto &f = tet_faces[i];
-            const int res = origin_ray_triangle_inter(dir, corners[f[0]], corners[f[1]], corners[f[2]]);
+            int res;
+            if(orient3d(zero, corners[f[0]], corners[f[1]], corners[f[2]])){
+                return true;
+            } else
+                res = origin_ray_triangle_inter(dir, corners[f[0]], corners[f[1]], corners[f[2]]);
 
             //bad luck
             if (res < 0)
@@ -399,7 +405,10 @@ int ray_patch(const FuncF &func, int patch, const Vector3d &dir)
     static const Vector3r zero(0, 0, 0);
 
     const std::array<Vector3r, 4> corners = func.corners(patch);
-
+    // for(int i = 0; i < 4; ++i){
+    //     std::cout<<"v"<<i<<" ";
+    //     print(corners[i]);
+    // }
     if (orient3d(corners[0], corners[1], corners[2], corners[3]) == 0)
     {
         return ray_flat_patch(corners, dir);
