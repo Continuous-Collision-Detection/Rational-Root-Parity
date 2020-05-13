@@ -7,6 +7,33 @@
 
 static const double EPSILON = std::numeric_limits<float>::epsilon();
 
+TEST_CASE("Corner case0",
+          "Corner case")
+{
+    const Eigen::Vector3d pts(0.0742893551979073, 0.0263742788498324, 0.0010474039494139426);
+    const Eigen::Vector3d v1s(0.07290626476594385, 0.027311689801583078, 0.0013884370526333508);
+    const Eigen::Vector3d v2s(0.07335896966730952, 0.02637427884983239, 0.001035981768919693);
+    const Eigen::Vector3d v3s(0.07242914448368196, 0.026374278849832386, 0.001070228306583729);
+
+    const Eigen::Vector3d pte(0.07562935519790728, 0.0263742788498324, 0.0010474039494139335);
+    const Eigen::Vector3d v1e(0.07424626476594383, 0.027311689801583078, 0.0013884370526333339);
+    const Eigen::Vector3d v2e(0.07469896966730949, 0.0263742788498324, 0.0010359817689196637);
+    const Eigen::Vector3d v3e(0.07376914448368192, 0.0263742788498324, 0.001070228306583705);
+
+    const eccd::TriPtF tf(
+        pts,
+        v1s, v2s, v3s,
+        pte,
+        v1e, v2e, v3e);
+    const int n = 10;
+    eccd::save_prism("prism.obj", tf, n);
+
+    bool hit = eccd::vertexFaceCCD(pts, v1s, v2s, v3s, pte, v1e, v2e, v3e);
+    // std::cout<<hit<<std::endl;
+    CHECK(!hit);
+    // exit(0);
+}
+
 TEST_CASE("Corner case1",
           "Corner case")
 {
