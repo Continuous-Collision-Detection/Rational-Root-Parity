@@ -26,8 +26,8 @@ endfunction()
 # eigen
 function(eccd_download_eigen)
     eccd_download_project(eigen
-        URL           http://bitbucket.org/eigen/eigen/get/3.3.7.tar.bz2
-        URL_MD5       05b1f7511c93980c385ebe11bd3c93fa
+        GIT_REPOSITORY  https://gitlab.com/libeigen/eigen
+        GIT_TAG         25424d91f60a9f858e7dc1c7936021cc1dd72019
     )
 endfunction()
 
