@@ -1,2 +1,2 @@
-# Exact-CCD
-Rational Exact CCD
+# Rational Root Parity
+Rational Root Parity CCD
