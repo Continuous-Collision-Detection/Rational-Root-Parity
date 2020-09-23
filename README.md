@@ -1,2 +1,2 @@
-# Exact-CDD
+# Exact-CCD
 Rational Exact CCD
