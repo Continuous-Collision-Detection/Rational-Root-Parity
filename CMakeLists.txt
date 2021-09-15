@@ -92,6 +92,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 add_library(${PROJECT_NAME}  ${SOURCE_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC "src")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
