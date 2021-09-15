@@ -54,7 +54,7 @@ include(ECCDDownloadExternal)
 ################################################################################
 # 3rd party libraries
 ################################################################################
-find_package(GMPECCD)
+find_package(GMP)
 
 IF(NOT ${GMP_FOUND})
         MESSAGE(FATAL_ERROR "Cannot find GMP")
