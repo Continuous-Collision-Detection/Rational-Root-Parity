@@ -1,36 +1,79 @@
-# Try to find the GMP librairies
-# GMP_FOUND - system has GMP lib
-# GMP_INCLUDE_DIRS - the GMP include directory
-# GMP_LIBRARIES - Libraries needed to use GMP
+# Try to find the GNU Multiple Precision Arithmetic Library (GMP)
+# See http://gmplib.org/
 
-if (GMP_INCLUDE_DIRS AND GMP_LIBRARIES)
-        # Already in cache, be silent
-        set(GMP_FIND_QUIETLY TRUE)
-endif (GMP_INCLUDE_DIRS AND GMP_LIBRARIES)
+find_path(GMP_INCLUDES
+    NAMES
+        gmp.h
+    PATHS
+        ENV GMP_DIR
+        ${GMP_WINDOWS_PATH}
+        ${INCLUDE_INSTALL_DIR}
+    PATH_SUFFIXES
+        include
+)
 
+find_library(GMP_LIBRARIES
+    NAMES
+        gmp
+        libgmp
+    PATHS
+        ENV GMP_DIR
+        ${GMP_WINDOWS_PATH}
+        ${LIB_INSTALL_DIR}
+    PATH_SUFFIXES
+        lib
+)
 
-
-#if(WIN32)
-#	if(CYGWIN)
-#		triwild_download_gmp_cygwin()
-	#elseif(MINGW)
-#		triwild_download_gmp_mingw()
-	#else()
-#		triwild_download_gmp_vc()
-	#endif()
-
-	#SET(GMP_WINDOWS_PATH ${THIRD_PARTY_DIR}/gmp)
-#endif()
-
-
-find_path(GMP_INCLUDE_DIRS NAMES gmp.h PATHS $ENV{GMP_INC} ${GMP_WINDOWS_PATH})
-find_library(GMP_LIBRARIES NAMES gmp libgmp PATHS $ENV{GMP_LIB} ${GMP_WINDOWS_PATH})
-find_library(GMPXX_LIBRARIES NAMES gmpxx libgmpxx PATHS $ENV{GMP_LIB} ${GMP_WINDOWS_PATH})
-#MESSAGE(STATUS "GMP libs: " ${GMP_LIBRARIES} " " ${GMPXX_LIBRARIES} )
-
+set(GMP_EXTRA_VARS "")
+if(WIN32)
+    # Find dll file and set IMPORTED_LOCATION to the .dll file
+    find_file(GMP_RUNTIME_LIB
+        NAMES
+            gmp.dll
+            libgmp-10.dll
+        PATHS
+            ENV GMP_DIR
+            ${GMP_WINDOWS_PATH}
+            ${LIB_INSTALL_DIR}
+        PATH_SUFFIXES
+            lib
+    )
+    list(APPEND GMP_EXTRA_VARS GMP_RUNTIME_LIB)
+endif()
 
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(GMP DEFAULT_MSG GMP_INCLUDE_DIRS GMP_LIBRARIES)
+find_package_handle_standard_args(GMP
+    REQUIRED_VARS
+        GMP_INCLUDES
+        GMP_LIBRARIES
+        ${GMP_EXTRA_VARS}
+    REASON_FAILURE_MESSAGE
+        "GMP is not installed on your system. Install GMP using your preferred package manager."
+)
+mark_as_advanced(GMP_INCLUDES GMP_LIBRARIES)
 
-mark_as_advanced(GMP_INCLUDE_DIRS GMP_LIBRARIES)
-MESSAGE(STATUS "GMP libs: " ${GMP_LIBRARIES} " " ${GMP_INCLUDE_DIRS} )
+if(GMP_INCLUDES AND GMP_LIBRARIES AND NOT TARGET gmp::gmp)
+    if(GMP_RUNTIME_LIB)
+        add_library(gmp::gmp SHARED IMPORTED)
+    else()
+        add_library(gmp::gmp UNKNOWN IMPORTED)
+    endif()
+
+    # Set public header location and link language
+    set_target_properties(gmp::gmp PROPERTIES
+        IMPORTED_LINK_INTERFACE_LANGUAGES "C"
+        INTERFACE_INCLUDE_DIRECTORIES "${GMP_INCLUDES}"
+    )
+
+    # Set lib location. On Windows we specify both the .lib and the .dll paths
+    if(GMP_RUNTIME_LIB)
+        set_target_properties(gmp::gmp PROPERTIES
+            IMPORTED_IMPLIB "${GMP_LIBRARIES}"
+            IMPORTED_LOCATION "${GMP_RUNTIME_LIB}"
+        )
+    else()
+        set_target_properties(gmp::gmp PROPERTIES
+            IMPORTED_LOCATION "${GMP_LIBRARIES}"
+        )
+    endif()
+endif()
